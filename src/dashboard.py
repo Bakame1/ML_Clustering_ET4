@@ -3,9 +3,11 @@ import pandas as pd
 import numpy as np
 import os
 import plotly.express as px
+from PIL import Image
 from constant import PATH_OUTPUT, MODEL_CLUSTERING
 
-# Fonction utilitaire pour charger un fichier Excel en gérant les erreurs
+# --- Fonctions utilitaires pour le chargement des fichiers Excel ---
+
 @st.cache_data
 def load_excel(file_name):
     file_path = os.path.join(PATH_OUTPUT, file_name)
@@ -19,7 +21,7 @@ def load_excel(file_name):
         st.error(f"Erreur lors de la lecture du fichier {file_name} : {e}")
         return pd.DataFrame()
 
-# Chargement des fichiers Excel
+# Chargement des fichiers Excel contenant les résultats du clustering et les métriques
 df_hist   = load_excel("save_clustering_hist.xlsx")
 df_hog    = load_excel("save_clustering_hog.xlsx")
 df_hsv    = load_excel("save_clustering_hsv.xlsx")
@@ -29,7 +31,8 @@ df_metric = load_excel("save_metric.xlsx")
 if not df_metric.empty and 'Unnamed: 0' in df_metric.columns:
     df_metric.drop(columns="Unnamed: 0", inplace=True)
 
-# Fonction pour créer un graphique 3D coloré en fonction du cluster sélectionné
+# --- Fonctions de visualisation des clusters ---
+
 @st.cache_data
 def colorize_cluster(cluster_data, selected_cluster):
     fig = px.scatter_3d(cluster_data, x='x', y='y', z='z', color='cluster')
@@ -41,7 +44,6 @@ def colorize_cluster(cluster_data, selected_cluster):
     )
     return fig
 
-# Fonction pour afficher un histogramme comparatif des scores AMI
 @st.cache_data
 def plot_metric(df_metric):
     fig = px.bar(
@@ -54,16 +56,34 @@ def plot_metric(df_metric):
     )
     return fig
 
+# --- Fonction pour charger le mapping image-cluster ---
+
+@st.cache_data
+def load_image_mapping():
+    mapping_file = os.path.join(PATH_OUTPUT, "image_clusters.csv")
+    if not os.path.exists(mapping_file):
+        st.error("Le mapping image-cluster n'existe pas. Veuillez lancer le pipeline pour générer les données.")
+        return pd.DataFrame()
+    try:
+        df = pd.read_csv(mapping_file)
+        return df
+    except Exception as e:
+        st.error(f"Erreur lors du chargement du mapping : {e}")
+        return pd.DataFrame()
+
+# --- Construction de l'interface Dashboard ---
+
 st.title("Dashboard Clustering des données")
 
-# Création de deux onglets pour l'analyse
-tab1, tab2 = st.tabs(["Analyse par descripteur", "Analyse globale"])
+# Création de trois onglets : Analyse par descripteur, Analyse globale, Images par Cluster
+tab1, tab2, tab3 = st.tabs(["Analyse par descripteur", "Analyse globale", "Images par Cluster"])
 
+# Onglet 1 : Analyse par descripteur
 with tab1:
     st.header("Résultat de Clustering par descripteur")
     st.sidebar.header("Options d'analyse")
     # Sélection du descripteur à analyser
-    descriptor = st.sidebar.selectbox('Sélectionner un descripteur', ["HIST", "HOG", "HSV","SIFT"])
+    descriptor = st.sidebar.selectbox('Sélectionner un descripteur', ["HIST", "HOG", "HSV", "SIFT"])
     if descriptor == "HIST":
         df = df_hist
     elif descriptor == "HOG":
@@ -83,6 +103,7 @@ with tab1:
     else:
         st.warning("Aucune donnée disponible pour ce descripteur.")
 
+# Onglet 2 : Analyse globale
 with tab2:
     st.header("Analyse Globale des Descripteurs")
     if not df_metric.empty:
@@ -98,3 +119,29 @@ with tab2:
         )
     else:
         st.warning("Les métriques ne sont pas disponibles.")
+
+# Onglet 3 : Affichage des images par cluster
+with tab3:
+    st.header("Images par Cluster")
+    df_mapping = load_image_mapping()
+    if not df_mapping.empty:
+        clusters_disponibles = sorted(df_mapping["predicted_cluster"].unique())
+        selected_cluster_img = st.selectbox("Sélectionnez le cluster à afficher", clusters_disponibles)
+        st.write(f"Images du cluster {selected_cluster_img}")
+
+        # Filtrer les images appartenant au cluster sélectionné
+        df_cluster = df_mapping[df_mapping["predicted_cluster"] == selected_cluster_img]
+        nb_colonnes = 4  # nombre d'images par ligne
+        colonnes = st.columns(nb_colonnes)
+        for idx, row in df_cluster.iterrows():
+            image_path = row["image_path"]
+            if os.path.exists(image_path):
+                try:
+                    image = Image.open(image_path)
+                    colonnes[idx % nb_colonnes].image(image, caption=os.path.basename(image_path), use_container_width=True)
+                except Exception as e:
+                    st.error(f"Erreur lors de l'ouverture de l'image {image_path} : {e}")
+            else:
+                st.warning(f"Le fichier {image_path} est introuvable.")
+    else:
+        st.info("Le mapping image-cluster n'est pas disponible.")

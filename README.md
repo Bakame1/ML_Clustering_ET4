@@ -1,4 +1,4 @@
-# Projet de clustering des immages SNACK pour ET4 info Polytech Paris Saclay
+## Projet de clustering des immages SNACK pour ET4 info Polytech Paris Saclay
 
 ### step 1 : téléchargement des données et installation des packages
     - a. télécharger les données Snack : https://huggingface.co/datasets/Matthijs/snacks/tree/main

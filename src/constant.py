@@ -1,4 +1,4 @@
 PATH_OUTPUT = "donnees"
-MODEL_CLUSTERING = "kmeans"
+MODEL_CLUSTERING = "kmedoids"
 # kmeans
-# dbscan
+# kmedoids

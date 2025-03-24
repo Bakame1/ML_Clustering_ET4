@@ -8,25 +8,47 @@ from clustering import *
 from utils import *
 from constant import PATH_OUTPUT, MODEL_CLUSTERING
 
-def load_images_from_folder(folder):
-    """
-    Charge les images à partir d'un dossier et les retourne sous forme de tableau numpy.
-    """
+def load_images_and_labels(main_folder="images/testRegroupe"):
     images = []
-    for filename in os.listdir(folder):
-        if filename.endswith(('.png', '.jpg', '.jpeg')):
-            img_path = os.path.join(folder, filename)
-            img = cv2.imread(img_path)
-            if img is not None:
-                img = cv2.resize(img, (128, 128))  # Redimensionner l'image à 128x128 pixels
-                images.append(img)
-    return np.array(images)
+    labels = []
+
+    # Récupère la liste des sous-dossiers (chaque sous-dossier = 1 classe)
+    class_names = sorted(os.listdir(main_folder))  
+    # Exemple: class_names = ["apple", "banana", "cake", "candy", ...]
+
+    for idx_class, class_name in enumerate(class_names):
+        class_folder = os.path.join(main_folder, class_name)
+
+        # Vérifie que c'est bien un dossier
+        if not os.path.isdir(class_folder):
+            continue
+        
+        # Parcourt toutes les images du sous-dossier
+        for filename in os.listdir(class_folder):
+            if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+                file_path = os.path.join(class_folder, filename)
+                img = cv2.imread(file_path)
+
+                if img is not None:
+                    # Par exemple, redimensionner en 128x128
+                    img = cv2.resize(img, (128, 128))
+                    images.append(img)
+                    # Associe un label numérique (idx_class) à la classe (class_name)
+                    labels.append(idx_class)
+
+    images = np.array(images)
+    labels = np.array(labels)
+
+    return images, labels, class_names
 
 def pipeline():
    
-    images = load_images_from_folder("images")
-    labels_true = np.zeros(len(images)) 
-    print(images[0])
+    images, labels_true, class_names = load_images_and_labels("images/testRegroupe")
+    
+    print("Nombre d'images chargées :", len(images))
+    print("Labels disponibles :", np.unique(labels_true))
+    print("Correspondance ID -> Classe :", dict(enumerate(class_names)))
+
 
    
     print("\n\n ##### Extraction de Features ######")
@@ -40,7 +62,7 @@ def pipeline():
     descriptors_sift = compute_sift_descriptors(images)
 
     print("\n\n ##### Clustering ######")
-    number_cluster = 10
+    number_cluster = 20
     if MODEL_CLUSTERING == "kmeans":
         clustered_hog = KMEANS(number_cluster)
         clustered_hist = KMEANS(number_cluster)

@@ -1,4 +1,5 @@
 ## Projet de clustering des immages SNACK pour ET4 info Polytech Paris Saclay
+## Auteur : Marko Babic + Base du code venant du cours de ML de Polytech Paris Saclay
 
 ### step 1 : téléchargement des données et installation des packages
     - a. télécharger les données Snack : https://huggingface.co/datasets/Matthijs/snacks/tree/main

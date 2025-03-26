@@ -29,7 +29,6 @@ def compute_gray_histograms(images):
         # Concaténation des histogrammes des trois canaux
         hist = np.concatenate((hist_r, hist_g, hist_b))
         descriptors.append(hist)
-
     return descriptors
 
 def compute_hog_descriptors(images):
@@ -87,13 +86,24 @@ def compute_cnn_features(images):
     Input : images (array) : tableau numpy des images (taille 224x224)
     Output : descriptors (array) : tableau de features extraites
     """
-    
-
     # Prétraitement
     images = images.astype('float32')
     images = preprocess_input(images)
-    
-    # Charger VGG16 sans les couches de classification et avec un pooling global
     base_model = VGG16(weights='imagenet', include_top=False, pooling='avg')
+    descriptors = base_model.predict(images)
+    return descriptors
+
+def compute_resnet50_features(images):
+    """
+    Calcule les features CNN pour les images en couleur en utilisant ResNet50.
+    Les images doivent être de taille 224x224.
+    On utilise ResNet50 pré-entraîné (sans la dernière couche de classification) et un pooling global.
+    Input : images (array) : tableau numpy des images (taille 224x224)
+    Output : descriptors (array) : tableau de features extraites
+    """
+    from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input as resnet_preprocess_input
+    images = images.astype('float32')
+    images = resnet_preprocess_input(images)
+    base_model = ResNet50(weights='imagenet', include_top=False, pooling='avg')
     descriptors = base_model.predict(images)
     return descriptors

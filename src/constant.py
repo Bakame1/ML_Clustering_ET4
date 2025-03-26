@@ -1,4 +1,4 @@
 PATH_OUTPUT = "donnees"
-MODEL_CLUSTERING = "kmedoids"
+MODEL_CLUSTERING = "kmeans"
 # kmeans
 # kmedoids

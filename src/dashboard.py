@@ -26,6 +26,7 @@ df_hist   = load_excel("save_clustering_hist.xlsx")
 df_hog    = load_excel("save_clustering_hog.xlsx")
 df_hsv    = load_excel("save_clustering_hsv.xlsx")
 df_sift   = load_excel("save_clustering_sift.xlsx")
+df_cnn   = load_excel("save_clustering_cnn.xlsx")
 df_metric = load_excel("save_metric.xlsx")
 
 if not df_metric.empty and 'Unnamed: 0' in df_metric.columns:
@@ -83,7 +84,7 @@ with tab1:
     st.header("Résultat de Clustering par descripteur")
     st.sidebar.header("Options d'analyse")
     # Sélection du descripteur à analyser
-    descriptor = st.sidebar.selectbox('Sélectionner un descripteur', ["HIST", "HOG", "HSV", "SIFT"])
+    descriptor = st.sidebar.selectbox('Sélectionner un descripteur', ["HIST", "HOG", "HSV", "SIFT","CNN"])
     if descriptor == "HIST":
         df = df_hist
     elif descriptor == "HOG":
@@ -92,6 +93,8 @@ with tab1:
         df = df_hsv
     elif descriptor == "SIFT":
         df = df_sift
+    elif descriptor == "CNN":
+        df = df_cnn
 
     # Sélection du cluster à analyser
     selected_cluster = st.sidebar.selectbox('Sélectionner un Cluster', range(10))

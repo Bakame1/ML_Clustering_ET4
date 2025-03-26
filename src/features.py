@@ -1,3 +1,6 @@
+from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
+from tensorflow.keras.models import Model
+
 import os
 import cv2
 import numpy as np
@@ -29,8 +32,6 @@ def compute_gray_histograms(images):
 
     return descriptors
 
-
-
 def compute_hog_descriptors(images):
     """
     Calcule les descripteurs HOG pour les images en couleur.
@@ -39,7 +40,6 @@ def compute_hog_descriptors(images):
     """
     descriptors = []
     for image in images:
-        # Calcul des descripteurs HOG
         fd = hog(image, pixels_per_cell=(4, 4), cells_per_block=(2, 2), visualize=False, channel_axis=-1)
         descriptors.append(fd)
     return descriptors
@@ -52,17 +52,11 @@ def compute_hsv_histograms(images):
     """
     descriptors = []
     for image in images:
-        # Conversion de l'image en couleur en HSV
         hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
-        # Calcul de l'histogramme HSV
         hist = cv2.calcHist([hsv_image], [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256])
-        hist = cv2.normalize(hist, hist).flatten()  # Normalisation de l'histogramme
-
+        hist = cv2.normalize(hist, hist).flatten()
         descriptors.append(hist)
-
     return descriptors
-
 
 def compute_sift_descriptors(images, num_descriptors=10):
     """
@@ -72,25 +66,34 @@ def compute_sift_descriptors(images, num_descriptors=10):
     """
     sift = cv2.SIFT_create()
     descriptors = []
-
     for image in images:
-        # Conversion en uint8
         image = cv2.normalize(image, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-
-        # Calcul des descripteurs SIFT
         _, desc = sift.detectAndCompute(image, None)
-
         if desc is not None:
-            # Limiter le nombre de descripteurs à num_descriptors
             if len(desc) > num_descriptors:
                 desc = desc[:num_descriptors]
             else:
-                # Remplir avec des zéros si moins de descripteurs
                 desc = np.vstack((desc, np.zeros((num_descriptors - len(desc), 128))))
-
             descriptors.append(desc.flatten())
         else:
-            # Si aucun descripteur n'est trouvé, ajouter une liste vide ou un vecteur de zéros
-            descriptors.append(np.zeros(num_descriptors * 128))  # SIFT a généralement 128 dimensions
+            descriptors.append(np.zeros(num_descriptors * 128))
+    return descriptors
 
+def compute_cnn_features(images):
+    """
+    Calcule les features CNN pour les images en couleur.
+    Les images doivent être de taille 224x224.
+    On utilise VGG16 pré-entraîné (sans la dernière couche de classification) et un pooling global.
+    Input : images (array) : tableau numpy des images (taille 224x224)
+    Output : descriptors (array) : tableau de features extraites
+    """
+    
+
+    # Prétraitement
+    images = images.astype('float32')
+    images = preprocess_input(images)
+    
+    # Charger VGG16 sans les couches de classification et avec un pooling global
+    base_model = VGG16(weights='imagenet', include_top=False, pooling='avg')
+    descriptors = base_model.predict(images)
     return descriptors

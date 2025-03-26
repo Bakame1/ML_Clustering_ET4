@@ -1,5 +1,5 @@
 ## Projet de clustering des immages SNACK pour ET4 info Polytech Paris Saclay
-## Auteur : Marko Babic + Base du code venant du cours de ML de Polytech Paris Saclay
+#### Auteur : Marko Babic + Base du code venant du cours de ML de Polytech Paris Saclay
 
 ### Préréquis : Version de Python
     - Avoir une version de python entre 3.8 et 3.11

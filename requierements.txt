@@ -9,3 +9,4 @@ tensorflow
 matplotlib
 openpyxl
 opencv-contrib-python
+tensorflow

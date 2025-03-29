@@ -1,7 +1,6 @@
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, silhouette_score
 import numpy as np
 from sklearn import metrics
-from constant import MODEL_CLUSTERING
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import jaccard_score, adjusted_rand_score
 
@@ -113,7 +112,7 @@ class Agglomerative_Clustering:
         return self.labels_
 
 # Fonction pour afficher les métriques de clustering
-def show_metric(labels_true, labels_pred, descriptors, bool_return=False, name_descriptor="", name_model=MODEL_CLUSTERING, bool_show=True):
+def show_metric(labels_true, labels_pred, descriptors, bool_return=False, name_descriptor="", name_model="", bool_show=True):
     homogeneity, completeness, v_measure = metrics.homogeneity_completeness_v_measure(labels_true, labels_pred)
     jaccard = jaccard_score(labels_true, labels_pred, average='macro')
     ami = normalized_mutual_info_score(labels_true, labels_pred)

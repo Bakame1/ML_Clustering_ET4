@@ -6,7 +6,7 @@ import cv2
 from features import *
 from clustering import KMEANS, KMEDOIDS, Agglomerative_Clustering, show_metric
 from utils import *
-from constant import PATH_OUTPUT, MODEL_CLUSTERING
+from constant import PATH_OUTPUT
 
 def load_images_and_labels(main_folder):
     images = []
@@ -23,7 +23,7 @@ def load_images_and_labels(main_folder):
                 file_path = os.path.join(class_folder, filename)
                 img = cv2.imread(file_path)
                 if img is not None:
-                    # Pour les features classiques, on redimensionne à 128x128
+                    # Pour les features classiques, redimensionner à 128x128
                     img_resized = cv2.resize(img, (128, 128))
                     images.append(img_resized)
                     labels.append(idx_class)
@@ -38,8 +38,8 @@ def pipeline():
     print("Labels disponibles :", np.unique(labels_true))
     print("Correspondance ID -> Classe :", dict(enumerate(class_names)))
 
-    print("\n\n ##### Extraction de Features ######")
-    print("- calcul features hog...")
+    print("\n\n##### Extraction de Features #####")
+    print("- calcul features HOG...")
     descriptors_hog = compute_hog_descriptors(images)
     print("- calcul features Histogram...")
     descriptors_hist = compute_gray_histograms(images)
@@ -70,106 +70,67 @@ def pipeline():
     resnet_images = np.array(resnet_images)
     descriptors_resnet = compute_resnet50_features(resnet_images)
 
-    print("\n\n ##### Clustering ######")
-    number_cluster = 20  # Correspond aux 20 classes attendues
-    if MODEL_CLUSTERING == "kmeans":
-        clustered_hog    = KMEANS(number_cluster)
-        clustered_hist   = KMEANS(number_cluster)
-        clustered_hsv    = KMEANS(number_cluster)
-        clustered_sift   = KMEANS(number_cluster)
-        clustered_cnn    = KMEANS(number_cluster)
-        clustered_resnet = KMEANS(number_cluster)
-    elif MODEL_CLUSTERING == "kmedoids":
-        clustered_hog    = KMEDOIDS(number_cluster)
-        clustered_hist   = KMEDOIDS(number_cluster)
-        clustered_hsv    = KMEDOIDS(number_cluster)
-        clustered_sift   = KMEDOIDS(number_cluster)
-        clustered_cnn    = KMEDOIDS(number_cluster)
-        clustered_resnet = KMEDOIDS(number_cluster)
-    elif MODEL_CLUSTERING == "agglomerative":
-        clustered_hog    = Agglomerative_Clustering(number_cluster)
-        clustered_hist   = Agglomerative_Clustering(number_cluster)
-        clustered_hsv    = Agglomerative_Clustering(number_cluster)
-        clustered_sift   = Agglomerative_Clustering(number_cluster)
-        clustered_cnn    = Agglomerative_Clustering(number_cluster)
-        clustered_resnet = Agglomerative_Clustering(number_cluster)
-    else:
-        raise ValueError("Modèle de clustering non supporté")
-
-    print("- calcul " + MODEL_CLUSTERING + " avec features HOG ...")
-    clustered_hog.fit(np.array(descriptors_hog))
-    print("- calcul " + MODEL_CLUSTERING + " avec features Histogram...")
-    clustered_hist.fit(np.array(descriptors_hist))
-    print("- calcul " + MODEL_CLUSTERING + " avec features HSV...")
-    clustered_hsv.fit(np.array(descriptors_hsv))
-    print("- calcul " + MODEL_CLUSTERING + " avec features SIFT...")
-    clustered_sift.fit(np.array(descriptors_sift))
-    print("- calcul " + MODEL_CLUSTERING + " avec features CNN (VGG16)...")
-    clustered_cnn.fit(np.array(descriptors_cnn))
-    print("- calcul " + MODEL_CLUSTERING + " avec features ResNet50...")
-    clustered_resnet.fit(np.array(descriptors_resnet))
-
-    print("\n\n ##### Résultat ######")
-    metric_hist   = show_metric(labels_true, clustered_hist.labels_, descriptors_hist, bool_show=True, name_descriptor="HIST", bool_return=True)
-    metric_hog    = show_metric(labels_true, clustered_hog.labels_, descriptors_hog, bool_show=True, name_descriptor="HOG", bool_return=True)
-    metric_hsv    = show_metric(labels_true, clustered_hsv.labels_, descriptors_hsv, bool_show=True, name_descriptor="HSV", bool_return=True)
-    metric_sift   = show_metric(labels_true, clustered_sift.labels_, descriptors_sift, bool_show=True, name_descriptor="SIFT", bool_return=True)
-    metric_cnn    = show_metric(labels_true, clustered_cnn.labels_, descriptors_cnn, bool_show=True, name_descriptor="CNN", bool_return=True)
-    metric_resnet = show_metric(labels_true, clustered_resnet.labels_, descriptors_resnet, bool_show=True, name_descriptor="RESNET", bool_return=True)
-
-    print("- export des données vers le dashboard")
-    list_dict = [metric_hist, metric_hog, metric_hsv, metric_sift, metric_cnn, metric_resnet]
-    df_metric = pd.DataFrame(list_dict)
-    
-    scaler = StandardScaler()
-    descriptors_hist_norm   = scaler.fit_transform(descriptors_hist)
-    descriptors_hog_norm    = scaler.fit_transform(descriptors_hog)
-    descriptors_hsv_norm    = scaler.fit_transform(descriptors_hsv)
-    descriptors_sift_norm   = scaler.fit_transform(descriptors_sift)
-    descriptors_cnn_norm    = scaler.fit_transform(descriptors_cnn)
-    descriptors_resnet_norm = scaler.fit_transform(descriptors_resnet)
-    
-    x_3d_hist   = conversion_3d(descriptors_hist_norm)
-    x_3d_hog    = conversion_3d(descriptors_hog_norm)
-    x_3d_hsv    = conversion_3d(descriptors_hsv_norm)
-    x_3d_sift   = conversion_3d(descriptors_sift_norm)
-    x_3d_cnn    = conversion_3d(descriptors_cnn_norm)
-    x_3d_resnet = conversion_3d(descriptors_resnet_norm)
-
-    df_hist   = create_df_to_export(x_3d_hist, labels_true, clustered_hist.labels_)
-    df_hog    = create_df_to_export(x_3d_hog, labels_true, clustered_hog.labels_)
-    df_hsv    = create_df_to_export(x_3d_hsv, labels_true, clustered_hsv.labels_)
-    df_sift   = create_df_to_export(x_3d_sift, labels_true, clustered_sift.labels_)
-    df_cnn    = create_df_to_export(x_3d_cnn, labels_true, clustered_cnn.labels_)
-    df_resnet = create_df_to_export(x_3d_resnet, labels_true, clustered_resnet.labels_)
-
-    mapping_files = {
-        "HIST":   (clustered_hist.labels_, "image_clusters_hist.csv"),
-        "HOG":    (clustered_hog.labels_, "image_clusters_hog.csv"),
-        "HSV":    (clustered_hsv.labels_, "image_clusters_hsv.csv"),
-        "SIFT":   (clustered_sift.labels_, "image_clusters_sift.csv"),
-        "CNN":    (clustered_cnn.labels_, "image_clusters_cnn.csv"),
-        "RESNET": (clustered_resnet.labels_, "image_clusters_resnet.csv")
+    # Dictionnaire des jeux de descripteurs et leur nom
+    descriptors_dict = {
+        "HIST": descriptors_hist,
+        "HOG": descriptors_hog,
+        "HSV": descriptors_hsv,
+        "SIFT": descriptors_sift,
+        "CNN": descriptors_cnn,
+        "RESNET": descriptors_resnet
     }
-    
-    for desc, (labels_pred, file_name) in mapping_files.items():
-        df_map = pd.DataFrame({
-            "image_path": file_paths,
-            "predicted_cluster": labels_pred
-        })
-        df_map.to_csv(os.path.join(PATH_OUTPUT, file_name), index=False)
 
-    if not os.path.exists(PATH_OUTPUT):
-        os.makedirs(PATH_OUTPUT)
-    df_hist.to_excel(os.path.join(PATH_OUTPUT, "save_clustering_hist.xlsx"), index=False, engine='openpyxl')
-    df_hog.to_excel(os.path.join(PATH_OUTPUT, "save_clustering_hog.xlsx"), index=False, engine='openpyxl')
-    df_hsv.to_excel(os.path.join(PATH_OUTPUT, "save_clustering_hsv.xlsx"), index=False, engine='openpyxl')
-    df_sift.to_excel(os.path.join(PATH_OUTPUT, "save_clustering_sift.xlsx"), index=False, engine='openpyxl')
-    df_cnn.to_excel(os.path.join(PATH_OUTPUT, "save_clustering_cnn.xlsx"), index=False, engine='openpyxl')
-    df_resnet.to_excel(os.path.join(PATH_OUTPUT, "save_clustering_resnet.xlsx"), index=False, engine='openpyxl')
-    df_metric.to_excel(os.path.join(PATH_OUTPUT, "save_metric.xlsx"), index=False, engine='openpyxl')
+    # Dictionnaire reliant le nom de l'algorithme à sa classe
+    clustering_models = {
+        "kmeans": KMEANS,
+        "kmedoids": KMEDOIDS,
+        "agglomerative": Agglomerative_Clustering
+    }
 
-    print("Fin. \n\n Pour avoir la visualisation dashboard, veuillez lancer la commande : streamlit run dashboard.py")
+    number_cluster = 20  # Nombre de clusters attendu
+    metric_results = []  # Pour agréger les métriques de chaque algorithme
+
+    # Pour chaque algorithme, effectuer le clustering pour chaque descripteur
+    for algo_name, AlgoClass in clustering_models.items():
+        print(f"\n--- Clustering avec {algo_name.upper()} ---")
+        for desc_name, descriptors in descriptors_dict.items():
+            print(f"- calcul {algo_name} avec features {desc_name} ...")
+            # Instanciation : pour les algos nécessitant le nombre de clusters
+            if algo_name in ["kmeans", "kmedoids", "agglomerative"]:
+                clustering_model = AlgoClass(number_cluster)
+            else:
+                clustering_model = AlgoClass()  # Cas général si besoin
+
+            clustering_model.fit(np.array(descriptors))
+            # Calcul des métriques
+            metrics_dict = show_metric(
+                labels_true, clustering_model.labels_, descriptors,
+                bool_show=True, name_descriptor=desc_name,name_model=algo_name, bool_return=True
+            )
+            metrics_dict["algo"] = algo_name
+            metric_results.append(metrics_dict)
+
+            # Sauvegarde du mapping image-cluster pour ce descripteur et cet algo
+            mapping_file = os.path.join(PATH_OUTPUT, f"image_clusters_{desc_name.lower()}_{algo_name}.csv")
+            df_map = pd.DataFrame({
+                "image_path": file_paths,
+                "predicted_cluster": clustering_model.labels_
+            })
+            df_map.to_csv(mapping_file, index=False)
+
+            # Sauvegarde des résultats de clustering (les données 3D) pour le dashboard
+            scaler = StandardScaler()
+            descriptors_norm = scaler.fit_transform(descriptors)
+            x_3d = conversion_3d(descriptors_norm)
+            df_export = create_df_to_export(x_3d, labels_true, clustering_model.labels_)
+            file_export = os.path.join(PATH_OUTPUT, f"save_clustering_{desc_name.lower()}_{algo_name}.xlsx")
+            df_export.to_excel(file_export, index=False, engine='openpyxl')
+
+    # Sauvegarde globale des métriques pour tous les algos
+    df_metric = pd.DataFrame(metric_results)
+    df_metric.to_excel(os.path.join(PATH_OUTPUT, "save_metric_all.xlsx"), index=False, engine='openpyxl')
+
+    print("Fin.\n\nPour avoir la visualisation dashboard, lancez la commande : streamlit run dashboard.py")
 
 if __name__ == "__main__":
     pipeline()

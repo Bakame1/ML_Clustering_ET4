@@ -24,3 +24,5 @@
 ### step 4 : lancement du dashboard
     - se placer dans le dossier src dans le terminal
     - exécutez la commande : "streamlit run dashboard_clustering.py"
+    - si il y a un probleme lors du lancement du dashboard avec les fichiers excels
+        => supprimer tous les fichiers dans le dossier src/donnees puis refaire l'etape 3 et 4

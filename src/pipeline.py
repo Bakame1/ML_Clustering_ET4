@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import cv2
 from features import *
-from clustering import KMEANS, KMEDOIDS, show_metric
+from clustering import KMEANS, KMEDOIDS, Agglomerative_Clustering, show_metric
 from utils import *
 from constant import PATH_OUTPUT, MODEL_CLUSTERING
 
@@ -86,6 +86,13 @@ def pipeline():
         clustered_sift   = KMEDOIDS(number_cluster)
         clustered_cnn    = KMEDOIDS(number_cluster)
         clustered_resnet = KMEDOIDS(number_cluster)
+    elif MODEL_CLUSTERING == "agglomerative":
+        clustered_hog    = Agglomerative_Clustering(number_cluster)
+        clustered_hist   = Agglomerative_Clustering(number_cluster)
+        clustered_hsv    = Agglomerative_Clustering(number_cluster)
+        clustered_sift   = Agglomerative_Clustering(number_cluster)
+        clustered_cnn    = Agglomerative_Clustering(number_cluster)
+        clustered_resnet = Agglomerative_Clustering(number_cluster)
     else:
         raise ValueError("Modèle de clustering non supporté")
 
@@ -136,7 +143,6 @@ def pipeline():
     df_cnn    = create_df_to_export(x_3d_cnn, labels_true, clustered_cnn.labels_)
     df_resnet = create_df_to_export(x_3d_resnet, labels_true, clustered_resnet.labels_)
 
-    # Génération des mappings image-cluster par descripteur
     mapping_files = {
         "HIST":   (clustered_hist.labels_, "image_clusters_hist.csv"),
         "HOG":    (clustered_hog.labels_, "image_clusters_hog.csv"),
@@ -146,7 +152,6 @@ def pipeline():
         "RESNET": (clustered_resnet.labels_, "image_clusters_resnet.csv")
     }
     
-    # Sauvegarder un mapping pour chaque descripteur
     for desc, (labels_pred, file_name) in mapping_files.items():
         df_map = pd.DataFrame({
             "image_path": file_paths,
@@ -154,7 +159,6 @@ def pipeline():
         })
         df_map.to_csv(os.path.join(PATH_OUTPUT, file_name), index=False)
 
-    # Sauvegarde des autres résultats
     if not os.path.exists(PATH_OUTPUT):
         os.makedirs(PATH_OUTPUT)
     df_hist.to_excel(os.path.join(PATH_OUTPUT, "save_clustering_hist.xlsx"), index=False, engine='openpyxl')

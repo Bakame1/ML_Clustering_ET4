@@ -1,4 +1,3 @@
 PATH_OUTPUT = "donnees"
-MODEL_CLUSTERING = "kmeans"
-# kmeans
-# kmedoids
+MODEL_CLUSTERING = "agglomerative"
+# Options disponibles : "kmeans", "kmedoids", "agglomerative"

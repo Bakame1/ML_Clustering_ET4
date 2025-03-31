@@ -21,7 +21,7 @@ def load_excel(file_name):
         st.error(f"Erreur lors de la lecture du fichier {file_name} : {e}")
         return pd.DataFrame()
 
-# Chargement des mappings et métriques se fait en fonction de l'algo sélectionné
+#Chargement des mappings et métriques se fait en fonction de l'algo sélectionné
 @st.cache_data
 def load_mapping(descriptor, algo):
     mapping_file = os.path.join(PATH_OUTPUT, f"image_clusters_{descriptor.lower()}_{algo}.csv")
@@ -35,7 +35,7 @@ def load_mapping(descriptor, algo):
         st.error(f"Erreur lors du chargement du mapping {mapping_file} : {e}")
         return pd.DataFrame()
 
-# Chargement des métriques globales (pour tous les algos)
+#Chargement des métriques pour tous les algos
 @st.cache_data
 def load_metric(algo):
     metric_file = os.path.join(PATH_OUTPUT, "save_metric_all.xlsx")
@@ -80,10 +80,10 @@ def plot_metric(df_metric):
 
 st.title("Dashboard Clustering des données")
 
-# Création de trois onglets : Analyse par descripteur, Analyse globale, Images par Cluster
+#Création de trois onglets : Analyse par descripteur, Analyse globale, Images par Cluster
 tab1, tab2, tab3 = st.tabs(["Analyse par descripteur", "Analyse globale", "Images par Cluster"])
 
-# Sidebar pour la sélection de l'algorithme, du descripteur et du cluster
+#Sidebar pour la sélection de l'algorithme, du descripteur et du cluster
 with st.sidebar:
     st.header("Options d'analyse")
     selected_algo = st.selectbox('Sélectionner l\'algorithme de clustering', ["kmeans", "kmedoids", "agglomerative"])
@@ -93,12 +93,12 @@ with st.sidebar:
     st.session_state.selected_descriptor = selected_descriptor
     st.session_state.selected_cluster = selected_cluster
 
-# Onglet 1 : Analyse par descripteur
+#Onglet 1 : Analyse par descripteur en 3D
 with tab1:
     st.header("Résultat de Clustering par descripteur")
     descriptor = st.session_state.selected_descriptor
     algo = st.session_state.selected_algo
-    # Charger le fichier 3D correspondant pour le descripteur et l'algo
+    #Charger le fichier 3D correspondant pour le descripteur et l'algo
     file_3d = os.path.join(PATH_OUTPUT, f"save_clustering_{descriptor.lower()}_{algo}.xlsx")
     df = load_excel(os.path.basename(file_3d))
     st.subheader(f"Analyse du descripteur {descriptor} - Cluster {st.session_state.selected_cluster} ({algo.upper()})")
@@ -108,7 +108,7 @@ with tab1:
     else:
         st.warning("Aucune donnée disponible pour ce descripteur.")
 
-# Onglet 2 : Analyse globale
+#Onglet 2 : Analyse globale des métriques
 with tab2:
     st.header("Analyse Globale des Descripteurs")
     algo = st.session_state.selected_algo
@@ -127,7 +127,7 @@ with tab2:
     else:
         st.warning("Les métriques ne sont pas disponibles pour cet algorithme.")
 
-# Onglet 3 : Images par Cluster
+# Onglet 3 : Images par Cluster depuis nos fichier image_clusters_descriptor_algo
 with tab3:
     st.header("Images par Cluster")
     descriptor = st.session_state.selected_descriptor

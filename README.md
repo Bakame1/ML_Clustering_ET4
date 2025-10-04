@@ -3,21 +3,21 @@
 ### Step 1: Python Version
 - Case 1: Have a Python version between 3.8 and 3.11
       => install the requirements:
-      ```
-      pip install -r requierements.txt
-      ```
+```
+pip install -r requierements.txt
+```
 - Case 2: Use the 3.11 environment from the .venv folder in the code
   To do this, in a terminal from the project directory:
-     ```
-    .venv\Scripts\activate
-     ```
+```
+.venv\Scripts\activate
+```
 Then make sure the following commands are executed via the environment
 Example of the terminal once the env is used:
 (.venv) PS C:\Users...
     => Use pip if the libraries are not installed correctly:
-    ```
-    pip install -r requierements.txt
-    ```
+```
+pip install -r requierements.txt
+```
 ### Step 2: Run the Clustering Pipeline
 - Place yourself in the src folder in the terminal
 - Execute the command:
